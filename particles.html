@@ -1,0 +1,109 @@
+<!doctype html>                                                                                 
+<html>
+  <head>                                                                                        
+    <meta charset="utf-8">                                                                      
+    <title>JavaScript Demo Skeleton</title>                                                                    
+    <meta name="author" content="kstc">                                                    
+    <style>                                                                                     
+      html{position:absolute;overflow:hidden;width:100%;height:100%}                            
+      body{margin:0;position:absolute;}                                                         
+    </style>                                                                                    
+  </head>                                                                                       
+  <body>                                                                                        
+    <canvas></canvas>
+                                                                                                
+    <script>
+      w = 1280, h = 720;                                                               
+      const c = document.querySelector("canvas");
+      const x = c.getContext("2d");
+      c.width = w, c.height = h;
+
+// Standard useful functions
+S = Math.sin;
+C = Math.cos;
+T = Math.tan;
+A = Math.atan2;
+Q = Math.sqrt;
+N = Math.random;
+R = (r, g, b, a = 1) => `rgba(${r|0},${g|0},${b|0},${a})`;
+H = (h, s, l) => `hsl(${h|0},${s|0}%,${l|0}%)`;
+
+
+// Any set-up goes here
+p = [], n = 80, s = 1.0, b = 192;
+d = 150 * 150, g = -0.4;   
+
+for (i = 0; i < n; ++i)
+{
+    p[i] = p[i] || {
+        x: w * N(),
+        y: h * N(),
+        u: s * (N() - 0.5),
+        v: s * 0.5 * (N() - 0.5),
+    }
+}
+
+// Main rendering
+const render = time =>
+{
+    x.fillStyle = '#000';
+    x.fillRect(0,0,w,h);
+    x.fillStyle = '#fff';
+    x.lineWidth = "1";
+    x.strokeStyle = "#ccc";
+
+    // Update position
+    for (i = 0; i < n; ++i)
+    {
+        p[i].x = (w + p[i].x + p[i].u) % w;
+        p[i].y = (h + p[i].y + p[i].v) % h;
+    }
+
+    for (i = 0; i < n - 1; ++i)
+    {
+        x.fillRect(p[i].x, p[i].y, 1, 1);
+
+        for (j = i + 1; j < n; ++j)
+        {
+            dx = p[i].x - p[j].x;
+            dy = p[i].y - p[j].y;
+            dist = (dx * dx) + (dy * dy);
+
+            // Link particles?
+            if (d > 0 && dist < d)
+            {
+                f = Math.floor(b * (d - dist) / d);
+                x.strokeStyle = R(f,f,f);
+                x.beginPath();
+                x.moveTo(p[i].x, p[i].y);
+                x.lineTo(p[j].x, p[j].y);
+                x.stroke();
+                x.closePath();
+            }
+
+            // Update velocity?
+            if (Math.abs(g) > 0.001) 
+            {
+                if (dist < 2.0) dist = 2.0;
+                t = A(dy, dx);
+                f = g / dist;
+                ax = (f * C(t));
+                ay = (f * S(t));
+                p[i].u -= ax;
+                p[i].v -= ay;
+                p[j].u += ax;
+                p[j].v += ay;
+            }
+        }
+    }
+
+    // Next frame
+    requestAnimationFrame(render);
+}
+
+// Kick things off
+render();
+
+</script>
+</body>
+</html>
